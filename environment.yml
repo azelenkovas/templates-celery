@@ -1,0 +1,5 @@
+name: templates-celery
+dependencies:
+  - python=3.11
+  - pip
+  - poetry

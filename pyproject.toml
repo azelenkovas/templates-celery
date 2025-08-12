@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "templates-celery"
+version = "0.1.0"
+description = "PDF templates with Celery."
+authors = ["Your Name <your.email@example.com>"]
+readme = "README.md"
+packages = [{include = "templates"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+pydantic = "^1.10.2"
+pymupdf = "^1.23.0"
+reportlab = "^3.6.11"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.1.2"
+black = "^23.1.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
