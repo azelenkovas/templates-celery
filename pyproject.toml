@@ -12,6 +12,9 @@ pydantic = "^2.11.1"
 pymupdf = "^1.26.3"
 reportlab = "^4.4.3"
 pymongo = "^4.14.0"
+sqlmodel = "^0.0.24"
+fastapi = {extras = ["standard"], version = "^0.116.1"}
+uvicorn = {extras = ["standard"], version = "^0.35.0"}
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.4.1"
