@@ -15,6 +15,8 @@ pymongo = "^4.14.0"
 sqlmodel = "^0.0.24"
 fastapi = {extras = ["standard"], version = "^0.116.1"}
 uvicorn = {extras = ["standard"], version = "^0.35.0"}
+celery = {extras = ["redis"], version = "^5.5.3"}
+psycopg2-binary = "^2.9.10"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.4.1"

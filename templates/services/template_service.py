@@ -4,7 +4,7 @@ import fitz
 from templates.models import template
 from templates.models.template import Template
 from typing import List, Optional, Dict
-from templates.db.sqlite import SessionDep
+from templates.db.postgresql import SessionDep
 from sqlmodel import Field, Session, SQLModel, create_engine, select
 
 class InvalidTemplateException(Exception):

@@ -1,12 +1,21 @@
+import io
+import logging
 from typing import Annotated
 
-from fastapi import Depends, FastAPI, HTTPException, Query, UploadFile, Form
+from fastapi import (Depends, FastAPI, Form, HTTPException, Query, Response,
+                     UploadFile)
+from fastapi.responses import StreamingResponse
 from sqlmodel import Field, Session, SQLModel, create_engine, select
-from templates.db.sqlite import create_db_and_tables, SessionDep
-from templates.models.template import Template
-from templates.services.template_service import InvalidTemplateException, TemplateService
-import logging
 
+from templates.celery.tasks import celery_app as celery_app
+from templates.celery.tasks import issue_certificate
+from templates.db.postgresql import SessionDep, create_db_and_tables
+from templates.models.certrificate import Certificate, CertificateRequest
+from templates.models.template import Template
+from templates.services.certificate_service import (CertificateService,
+                                                    TemplateNotFound)
+from templates.services.template_service import (InvalidTemplateException,
+                                                 TemplateService)
 
 app = FastAPI()
 logging.basicConfig(level=logging.INFO)
@@ -63,3 +72,35 @@ def delete_template(template_id: int, session: SessionDep):
     if not deleted_template:
         raise HTTPException(status_code=404, detail="Template not found")
     return {"ok": True}
+
+@app.post("/certificates")
+def request_certificate(certificate_request: CertificateRequest, session: SessionDep) -> Certificate:
+    try:
+        certificate = CertificateService(session).request_certificate(certificate_request)
+        issue_certificate.delay(certificate.id)
+        return certificate
+    except TemplateNotFound as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+@app.get("/certificates/{certificate_id}")
+def read_certificate(certificate_id: int, session: SessionDep) -> Certificate:
+    certificate = CertificateService(session).get_certificate(certificate_id)
+    if not certificate:
+        raise HTTPException(status_code=404, detail="Certificate not found")
+    return certificate
+
+@app.post('/certificates/reissue/{certificate_id}')
+def reissue_certificate(certificate_id: int, session: SessionDep) -> Certificate:
+    certificate = CertificateService(session).get_certificate(certificate_id)
+    if not certificate:
+        raise HTTPException(status_code=404, detail="Certificate not found")
+    issue_certificate.delay(certificate.id)
+    return certificate
+
+@app.get("/certificates/{certificate_id}/download")
+def download_certificate(certificate_id: int, session: SessionDep, response: Response):
+    certificate = CertificateService(session).get_certificate(certificate_id)
+    if not certificate:
+        raise HTTPException(status_code=404, detail="Certificate not found")
+    response.headers["Content-Disposition"] = f"attachment; filename=certificate_{certificate.id}.pdf"
+    return StreamingResponse(io.BytesIO(certificate.pdf_file), media_type="application/pdf")

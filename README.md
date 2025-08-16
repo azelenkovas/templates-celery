@@ -22,3 +22,8 @@ PYTHONPATH=. fastapi dev templates/fastapi/controller.py
 
 To access the Swagger endpoints, go to http://localhost:8000/docs
 
+To run the Celery server:
+
+```
+celery -A templates.celery.tasks worker --loglevel=INFO
+```
